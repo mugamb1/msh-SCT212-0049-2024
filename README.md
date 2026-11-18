@@ -1,9 +1,12 @@
 Name: CHRISTIAN MWENDA MUGAMBI
 REG NO: SCT212-0049/2024
-Assignment Question One
 
 
 
+
+
+
+QUESTION 1
 
 How to build and run
 Compile the shell using `make` and launch the executable:
