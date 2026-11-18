@@ -24,9 +24,10 @@ int main(void) {
     char *line = NULL;
     size_t cap = 0;
     char *argv[MAX_ARGS];
+    int last_status = 0;
 
     while (1) {
-        printf("msh> ");
+        printf("msh[%d]> ", last_status);
         fflush(stdout);
 
         ssize_t nread = getline(&line, &cap, stdin);
@@ -68,6 +69,11 @@ int main(void) {
             int status;
             if (waitpid(pid, &status, 0) < 0) {
                 perror("waitpid");
+                last_status = 1;
+            } else if (WIFEXITED(status)) {
+                last_status = WEXITSTATUS(status);
+            } else if (WIFSIGNALED(status)) {
+                last_status = 128 + WTERMSIG(status);
             }
         }    
     }
