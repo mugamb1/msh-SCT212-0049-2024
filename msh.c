@@ -39,6 +39,24 @@ int main(void) {
         if (argc == 0) {
             continue;
         }
+        if (strcmp(argv[0], "exit") == 0) {
+            break;
+        }
+        if (strcmp(argv[0], "help") == 0) {
+            printf("msh built-ins: cd [dir], help, exit\n");
+            printf("Supports external commands, output redirection (>), and background jobs (&).\n");
+            continue;
+        }
+        if (strcmp(argv[0], "cd") == 0) {
+            const char *target = argv[1];
+            if (target == NULL) {
+                target = getenv("HOME");
+            }
+            if (target == NULL || chdir(target) != 0) {
+                perror("cd");
+            }
+            continue;
+        }
         pid_t pid = fork();
         if (pid < 0) {
             perror("fork");
