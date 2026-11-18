@@ -5,6 +5,8 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <fcntl.h>
+
 
 #define MAX_ARGS 128
 
@@ -79,6 +81,27 @@ int main(void) {
             perror("fork");
             last_status = 1;
         } else if (pid == 0) {
+            for (int i = 0; argv[i] != NULL; i++) {
+                if (strcmp(argv[i], ">") == 0) {
+                    if (argv[i + 1] == NULL) {
+                        fprintf(stderr, "msh: syntax error near unexpected token `newline'\n");
+                        _exit(1);
+                    }
+                    int fd = open(argv[i + 1], O_WRONLY | O_CREAT | O_TRUNC, 0644);
+                    if (fd < 0) {
+                        perror("open");
+                        _exit(1);
+                    }
+                    if (dup2(fd, STDOUT_FILENO) < 0) {
+                        perror("dup2");
+                        close(fd);
+                        _exit(1);
+                    }
+                    close(fd);
+                    argv[i] = NULL;
+                    break;
+                }
+            }
             execvp(argv[0], argv);
             perror(argv[0]);
             _exit(127);
