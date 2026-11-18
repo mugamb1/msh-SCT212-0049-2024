@@ -6,7 +6,6 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-
 #define MAX_ARGS 128
 
 int parse_line(char *line, char **argv) {
@@ -27,6 +26,12 @@ int main(void) {
     int last_status = 0;
 
     while (1) {
+        int bg_status;
+        pid_t done_pid;
+        while ((done_pid = waitpid(-1, &bg_status, WNOHANG)) > 0) {
+            printf("[bg] PID %d finished\n", done_pid);
+        }
+
         printf("msh[%d]> ", last_status);
         fflush(stdout);
 
@@ -37,15 +42,22 @@ int main(void) {
         }
 
         int argc = parse_line(line, argv);
+        int background = 0;
+        if (argc > 0 && strcmp(argv[argc - 1], "&") == 0) {
+            background = 1;
+            argv[--argc] = NULL;
+        }
         if (argc == 0) {
             continue;
         }
+
         if (strcmp(argv[0], "exit") == 0) {
             break;
         }
         if (strcmp(argv[0], "help") == 0) {
             printf("msh built-ins: cd [dir], help, exit\n");
             printf("Supports external commands, output redirection (>), and background jobs (&).\n");
+            last_status = 0;
             continue;
         }
         if (strcmp(argv[0], "cd") == 0) {
@@ -55,27 +67,37 @@ int main(void) {
             }
             if (target == NULL || chdir(target) != 0) {
                 perror("cd");
+                last_status = 1;
+            } else {
+                last_status = 0;
             }
             continue;
         }
+
         pid_t pid = fork();
         if (pid < 0) {
             perror("fork");
+            last_status = 1;
         } else if (pid == 0) {
             execvp(argv[0], argv);
             perror(argv[0]);
             _exit(127);
         } else {
-            int status;
-            if (waitpid(pid, &status, 0) < 0) {
-                perror("waitpid");
-                last_status = 1;
-            } else if (WIFEXITED(status)) {
-                last_status = WEXITSTATUS(status);
-            } else if (WIFSIGNALED(status)) {
-                last_status = 128 + WTERMSIG(status);
+            if (background) {
+                printf("[bg] started PID %d\n", pid);
+                last_status = 0;
+            } else {
+                int status;
+                if (waitpid(pid, &status, 0) < 0) {
+                    perror("waitpid");
+                    last_status = 1;
+                } else if (WIFEXITED(status)) {
+                    last_status = WEXITSTATUS(status);
+                } else if (WIFSIGNALED(status)) {
+                    last_status = 128 + WTERMSIG(status);
+                }
             }
-        }    
+        }
     }
 
     free(line);
