@@ -6,6 +6,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <signal.h>
 
 
 #define MAX_ARGS 128
@@ -22,6 +23,7 @@ int parse_line(char *line, char **argv) {
 }
 
 int main(void) {
+    signal(SIGINT, SIG_IGN);
     char *line = NULL;
     size_t cap = 0;
     char *argv[MAX_ARGS];
@@ -101,7 +103,9 @@ int main(void) {
                     argv[i] = NULL;
                     break;
                 }
-            }
+            }if (!background) {
+             signal(SIGINT, SIG_DFL);
+         }
             execvp(argv[0], argv);
             perror(argv[0]);
             _exit(127);
