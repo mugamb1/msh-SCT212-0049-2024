@@ -10,8 +10,6 @@ QUESTION 1
 
 How to build and run
 Compile the shell using `make` and launch the executable:
-
-```bash
 make
 ./msh
 
