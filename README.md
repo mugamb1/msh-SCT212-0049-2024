@@ -6,7 +6,7 @@ REG NO: SCT212-0049/2024
 
 
 
-QUESTION 1
+
 
 How to build and run
 Compile the shell using `make` and launch the executable:
@@ -58,4 +58,3 @@ Sources and AI-Tool Declaration
 Linux Programmer's Manual (man pages): Consulted man 2 fork, man 2 execvp, man 2 waitpid, man 2 open, man 2 dup2, man 2 chdir, man 3 getline, man 3 strtok, and man 7 signal for POSIX system call signatures, flags, and return values.
 
 AI-Tool Declaration: Gemini was used for finding bugs and solving compiler and runtime errors, as well as finding information and explanations about the assignment questions and POSIX system calls.
-EOF
